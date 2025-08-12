@@ -1,36 +1,57 @@
 body {
   font-family: Arial, Helvetica, sans-serif;
-  background-color: #737272;
+  background-color: #484545;
   color: white;
 }
 
 .container {
   max-width: 600px;
-  margin: 50px auto;
+  margin: 30px auto;
   text-align: center;
 }
 
 .btn {
   padding: 10px 20px;
   font-size: 16px;
-  background-color: #007bff;
-  color: #fff;
+  color: white;
   border: none;
   cursor: pointer;
   border-radius: 10px;
 }
 
-.btn:hover {
+.btn-primary {
+  background-color: #007bff;
+}
+
+.btn-primary:hover {
   background-color: #0056b3;
 }
 
-.quote {
-  font-style: italic;
+.btn-danger {
+  background-color: transparent;
+  color: red;
+  border: 2px solid red;
 }
 
-.quote::before,
-.quote::after {
+.btn-danger:hover {
+  background-color: red;
+  color: white;
+}
+
+.quote-text {
+  font-style: italic;
+  min-height: 2.3em;
+  margin-block-end: 0.7em;
+}
+
+.quote-text::before,
+.quote-text::after {
   content: '"';
+}
+
+.quote-author {
+  font-weight: bold;
+  margin-block-start: 0.7em;
 }
 .favorites-container {
   display: flex;
@@ -38,6 +59,8 @@ body {
   justify-content: center;
 }
 .favorite-card {
+  display: flex;
+  flex-direction: column;
   background-color: #f9f9f9;
   color: darkslategrey;
   padding: 10px 20px;
@@ -45,12 +68,21 @@ body {
   border-radius: 8px;
   width: 25%;
 }
-.author {
+.favorite-card-content {
+  flex: 1;
+  padding: 0px 3px;
+}
+
+.favorite-card-author {
   font-style: italic;
 }
 .star-icon {
-    font-size: 30px;
-    color: yellow;
-    cursor: pointer;
-    vertical-align: middle;
+  font-size: 30px;
+  color: yellow;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.quote {
+  font-size: 1.3em;
 }

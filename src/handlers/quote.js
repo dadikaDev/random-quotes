@@ -1,4 +1,4 @@
-import { generateRandomInt } from "../utils.js";
+import { generateRandomInt } from "../utils/math.js";
 import { handleFavorite } from "./favorites.js";
 
 function handleQuote(quotes, setCurrentQuote) {

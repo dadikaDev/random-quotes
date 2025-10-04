@@ -1,1 +1,1 @@
-[# dadikaDev-shop](https://dadikadev.github.io/random-quotes/)
+[# random-quotes](https://dadikadev.github.io/random-quotes/)

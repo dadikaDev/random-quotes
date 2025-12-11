@@ -10,18 +10,27 @@ import {
   localStorageGetItem,
   localStorageSetItem,
 } from "./src/utils/localStorage.js";
-import { getRandomQuote } from "./src/handlers/randomQuote.js";
+import {
+  getRandomQuote,
+  getRandomQuoteViaAPI,
+} from "./src/handlers/randomQuote.js";
 import { removeObjectFromArrayById } from "./src/utils/array.js";
 
 const CURRENT_QUOTE_KEY = "currentQuote";
 const FAVORITE_QUOTES_KEY = "favoriteQuotes";
 
 const randomQuoteBtn = document.getElementById("random-quote-btn");
+const randomQuoteAPIBtn = document.getElementById("random-quote-api-btn");
 const quoteFavoriteBtn = document.getElementById("quote-favorite-btn");
 const favoritesContainer = document.getElementById("favorites-container");
 
 let currentQuote = null;
 const favoriteQuotes = [];
+
+randomQuoteAPIBtn.addEventListener("click", async () => {
+  const apiQuote = await getRandomQuoteViaAPI();
+  setCurrentQuote(apiQuote);
+});
 
 function removeFavoriteQuote(id) {
   if (id === currentQuote.id) {
@@ -41,7 +50,7 @@ function toggleCurrentQuote() {
   if (currentQuote.isFavorite) {
     favoriteQuotes.push({ ...currentQuote });
   } else {
-    removeObjectFromArrayById(favoriteQuotes, currentQuote.id)
+    removeObjectFromArrayById(favoriteQuotes, currentQuote.id);
   }
   toggleFavoriteCard(currentQuote, favoritesContainer);
 

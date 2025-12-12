@@ -201,6 +201,10 @@ body {
     margin: 0 auto;
 }
 
+.icon-space {
+    margin-left: 5px;
+}
+
 @keyframes spin {
     to {
         transform: rotate(360deg);

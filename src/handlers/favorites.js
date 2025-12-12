@@ -27,7 +27,7 @@ function showFavoriteCard(quote, container) {
   <p>${text}</p>
     <p class="favorite-card-author">${author}</p>
     </div>
-    <button class="btn-danger remove-btn">Remove from favorites</button>`;
+    <button class="btn-danger remove-btn">Remove from favorites <i class="far fa-trash-alt icon-space"></i></button>`;
   container.appendChild(favoriteCard);
 
   const removeButton = favoriteCard.querySelector(".btn-danger");

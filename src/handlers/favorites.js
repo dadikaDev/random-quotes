@@ -1,48 +1,82 @@
-import { quoteFavoriteBtn, removeFavoriteQuote } from "../../index.js";
+let favoriteBtn = null;
+let favoritesContainer = null;
+let currentQuote = null;
+let onRemoveFavorite = null;
 
-function toggleFavoriteCard(quote, container) {
-  quote.isFavorite
-    ? showFavoriteCard(quote, container)
-    : removeFavoriteCard(quote.id);
+export function initFavorites({
+    favoriteBtnEl,
+    favoritesContainerEl,
+    removeFavoriteCallback,
+}) {
+    favoriteBtn = favoriteBtnEl;
+    favoritesContainer = favoritesContainerEl;
+    onRemoveFavorite = removeFavoriteCallback;
+
+    // Скрываем кнопку до установки текущей цитаты
+    if (favoriteBtn) favoriteBtn.style.display = "none";
+
+    // Обработка клика оставлена в index.js, чтобы логика данных (localStorage, массив favorites)
+    // оставалась в одном месте и не было дублирования.
 }
 
-function showFavoriteBtn(isFavorite) {
-  const btn = quoteFavoriteBtn;
-  if (btn.style.display === "none") btn.style.display = "inline-block";
-  btn.classList.toggle("fa", isFavorite);
-  btn.classList.toggle("far", !isFavorite);
+export function setCurrentQuoteForFavorites(quote) {
+    currentQuote = quote;
+    updateFavoriteBtn();
+    if (favoriteBtn) favoriteBtn.style.display = "inline-block";
 }
 
-function hideFavoriteBtn() {
-  quoteFavoriteBtn.style.display = "none";
+export function showFavoriteCard(quote) {
+    addFavorite(quote);
 }
 
-function showFavoriteCard(quote, container) {
-  const { id, text, author } = quote;
-  const favoriteCard = document.createElement("div");
-  favoriteCard.classList.add("favorite-card");
-  favoriteCard.dataset.favoriteQuoteId = id;
-  favoriteCard.innerHTML = `
-  <div class="favorite-card-content">
-  <p>${text}</p>
-    <p class="favorite-card-author">${author}</p>
+export function removeFavoriteCard(id) {
+    const card = favoritesContainer
+        ? favoritesContainer.querySelector(`[data-favorite-quote-id="${id}"]`)
+        : null;
+    if (card) card.remove();
+}
+
+// ================= Логика добавления и удаления карточки =================
+function addFavorite(quote) {
+    const { id, text, author } = quote;
+
+    if (!favoritesContainer) return;
+    if (favoritesContainer.querySelector(`[data-favorite-quote-id="${id}"]`))
+        return;
+
+    const favoriteCard = document.createElement("div");
+    favoriteCard.classList.add("favorite-card");
+    favoriteCard.dataset.favoriteQuoteId = id;
+
+    favoriteCard.innerHTML = `
+    <div class="favorite-card-content">
+      <p>${text}</p>
+      <p class="favorite-card-author">${author}</p>
     </div>
-    <button class="btn-danger remove-btn">Remove from favorites <i class="far fa-trash-alt icon-space"></i></button>`;
-  container.appendChild(favoriteCard);
+    <button class="btn-danger remove-btn">
+      Remove from favorites
+      <i class="far fa-trash-alt icon-space"></i>
+    </button>
+  `;
 
-  const removeButton = favoriteCard.querySelector(".btn-danger");
-  removeButton.addEventListener("click", () => removeFavoriteQuote(id));
+    favoritesContainer.appendChild(favoriteCard);
+
+    const removeBtn = favoriteCard.querySelector(".remove-btn");
+    removeBtn.addEventListener("click", () => {
+        if (onRemoveFavorite) onRemoveFavorite(id);
+        removeFavoriteCard(id);
+
+        if (currentQuote && currentQuote.id === id) {
+            currentQuote.isFavorite = false;
+            updateFavoriteBtn();
+        }
+    });
 }
 
-function removeFavoriteCard(id) {
-  const card = document.querySelector(`[data-favorite-quote-id="${id}"]`);
-  if (card) card.remove();
-}
+function updateFavoriteBtn() {
+    if (!favoriteBtn || !currentQuote) return;
 
-export {
-  toggleFavoriteCard,
-  hideFavoriteBtn,
-  showFavoriteCard,
-  showFavoriteBtn,
-  removeFavoriteCard,
-};
+    // Font Awesome: переключаем между solid ("fas") и regular ("far") для корректного отображения заполненной/пустой звезды
+    favoriteBtn.classList.toggle("fas", currentQuote.isFavorite);
+    favoriteBtn.classList.toggle("far", !currentQuote.isFavorite);
+}

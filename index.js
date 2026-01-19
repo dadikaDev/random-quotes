@@ -1,8 +1,7 @@
 import {
-    hideFavoriteBtn,
+    initFavorites,
+    setCurrentQuoteForFavorites,
     showFavoriteCard,
-    toggleFavoriteCard,
-    showFavoriteBtn,
     removeFavoriteCard,
 } from "./src/handlers/favorites.js";
 import { displayCurrentQuote } from "./src/handlers/currentQuote.js";
@@ -30,27 +29,10 @@ const spinner = document.getElementById("spinner");
 let currentQuote = null;
 const favoriteQuotes = [];
 
-randomQuoteAPIBtn.addEventListener("click", async () => {
-    quoteText.style.display = "none";
-    quoteAuthor.style.display = "none";
-    spinner.style.display = "block";
-
-    const apiQuote = await getRandomQuoteViaAPI();
-
-    spinner.style.display = "none";
-    quoteText.style.display = "block";
-    quoteAuthor.style.display = "block";
-
-    if (apiQuote) {
-        setCurrentQuote(apiQuote);
-    } else {
-        quoteText.textContent = "Error loading quote.";
-        quoteAuthor.textContent = "";
-    }
-});
+// Убраны обработчики на верхнем уровне — регистрируем их в init(), когда DOM и модули гарантированно готовы.
 
 function removeFavoriteQuote(id) {
-    if (id === currentQuote.id) {
+    if (currentQuote && id === currentQuote.id) {
         toggleCurrentQuote();
     } else {
         removeObjectFromArrayById(favoriteQuotes, id);
@@ -60,49 +42,97 @@ function removeFavoriteQuote(id) {
 }
 
 function toggleCurrentQuote() {
+    if (!currentQuote) return;
+
     currentQuote.isFavorite = !currentQuote.isFavorite;
-    showFavoriteBtn(currentQuote.isFavorite);
     localStorageSetItem(CURRENT_QUOTE_KEY, currentQuote);
 
     if (currentQuote.isFavorite) {
         favoriteQuotes.push({ ...currentQuote });
+        showFavoriteCard(currentQuote);
     } else {
         removeObjectFromArrayById(favoriteQuotes, currentQuote.id);
+        removeFavoriteCard(currentQuote.id);
     }
-    toggleFavoriteCard(currentQuote, favoritesContainer);
+
+    // Синхронизируем состояние кнопки в модуле favorites
+    setCurrentQuoteForFavorites(currentQuote);
 
     localStorageSetItem(FAVORITE_QUOTES_KEY, favoriteQuotes);
 }
 
 function setCurrentQuote(quote) {
-    currentQuote = { ...quote };
+    if (!quote) return;
+
+    // Нормализуем поля: поддерживаем старые варианты названий и приводим id к строке
+    const id = quote.id !== undefined ? String(quote.id) : undefined;
+    const text = quote.text ?? quote.quote ?? "";
+    const author = quote.author ?? quote.user ?? "";
+
+    currentQuote = { id, text, author };
+
+    // Корректно сравниваем id как строки
     currentQuote.isFavorite = !!favoriteQuotes.find(
-        (favoriteQuote) => favoriteQuote.id === currentQuote.id
+        (favoriteQuote) => String(favoriteQuote.id) === String(currentQuote.id)
     );
+
     displayCurrentQuote(currentQuote);
-    showFavoriteBtn(currentQuote.isFavorite);
+    setCurrentQuoteForFavorites(currentQuote);
     localStorageSetItem(CURRENT_QUOTE_KEY, currentQuote);
 }
 
-hideFavoriteBtn();
-quoteFavoriteBtn.addEventListener("click", toggleCurrentQuote);
-
-randomQuoteBtn.addEventListener("click", () =>
-    setCurrentQuote(getRandomQuote())
-);
-
 function init() {
+    // Инициализируем favorites модуль до отображения сохранённых карточек
+    initFavorites({
+        favoriteBtnEl: quoteFavoriteBtn,
+        favoritesContainerEl: favoritesContainer,
+        removeFavoriteCallback: removeFavoriteQuote,
+    });
+
     const favoriteQuotesFromStorage = localStorageGetItem(FAVORITE_QUOTES_KEY);
     if (favoriteQuotesFromStorage) {
         favoriteQuotesFromStorage.forEach((quote) => {
             favoriteQuotes.push(quote);
-            showFavoriteCard(quote, favoritesContainer);
+            showFavoriteCard(quote);
         });
     }
 
     const currentQuoteFromStorage = localStorageGetItem(CURRENT_QUOTE_KEY);
     if (currentQuoteFromStorage) {
         setCurrentQuote(currentQuoteFromStorage);
+    }
+
+    // Регистрируем обработчики после инициализации
+    if (randomQuoteAPIBtn) {
+        randomQuoteAPIBtn.addEventListener("click", async () => {
+            console.log("API quote button clicked");
+            if (quoteText) quoteText.style.display = "none";
+            if (quoteAuthor) quoteAuthor.style.display = "none";
+            if (spinner) spinner.style.display = "block";
+
+            const apiQuote = await getRandomQuoteViaAPI();
+
+            if (spinner) spinner.style.display = "none";
+            if (quoteText) quoteText.style.display = "block";
+            if (quoteAuthor) quoteAuthor.style.display = "block";
+
+            if (apiQuote) {
+                setCurrentQuote(apiQuote);
+            } else if (quoteText) {
+                quoteText.textContent = "Error loading quote.";
+                if (quoteAuthor) quoteAuthor.textContent = "";
+            }
+        });
+    }
+
+    if (quoteFavoriteBtn)
+        quoteFavoriteBtn.addEventListener("click", toggleCurrentQuote);
+
+    if (randomQuoteBtn) {
+        randomQuoteBtn.addEventListener("click", () => {
+            console.log("Local quote button clicked");
+            setCurrentQuote(getRandomQuote());
+        });
     }
 }
 
